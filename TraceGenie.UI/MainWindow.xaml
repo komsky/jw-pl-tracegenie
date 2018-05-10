@@ -1,0 +1,72 @@
+﻿<Window x:Class="TraceGenie.UI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TraceGenie.UI"
+        mc:Ignorable="d"
+        Title="JW PL TraceGenie" Height="445.5" Width="576.917">
+    <DockPanel>
+        <TabControl DockPanel.Dock="Top" Name="MainTabControl">
+            <TabItem Header="Logowanie">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+
+                    <Label Content="Username"  HorizontalAlignment="Right"  Grid.Column="0" Grid.Row="0"/>
+                    <TextBox Name="UsernameTextBox" Height="23" HorizontalAlignment="Left"  Grid.Column="1" Grid.Row="0" TextWrapping="Wrap"  Width="120"/>
+                    <Label Content="Password"  HorizontalAlignment="Right"  Grid.Column="0" Grid.Row="1"/>
+                    <PasswordBox Name="PasswordTextBox"   HorizontalAlignment="Left"  Grid.Column="1" Grid.Row="1" Width="120" Height="23"/>
+                    <Button Name="LoginButton" Content="Zaloguj"   Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2" Width="75" Click="Button_Click"/>
+
+                </Grid>
+            </TabItem>
+            <TabItem Header="Szukanie adresów">
+                <Grid>
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+
+                    <Label Name="PostcodeLabel" IsEnabled="False" Content="Post code" Grid.Column="0" Grid.Row="0"/>
+                    <ScrollViewer   Grid.Column="1" Grid.Row="0" Width="220" Grid.RowSpan="3" >
+                        <TextBox AcceptsReturn="True" IsEnabled="True" x:Name="PostcodeTextBox" TextWrapping="Wrap"  />
+
+                    </ScrollViewer>
+                    <Button IsEnabled="False" Name="SzukajAdresowButton" Content="Szukaj adresów" Grid.Column="0" Grid.Row="1" Width="104" Click="SzukajAdresowButton_Click" />
+                    <Button Name="ZapiszCSVButton" IsEnabled="False" Content="Zapisz jako CSV"  Grid.Column="0" Grid.Row="2" Width="104" Click="ZapiszCSVButton_Click"/>
+
+                </Grid>
+            </TabItem>
+            <TabItem Header="Filtrowanie">
+                <Button Content="Filtruj wg. polskich imion" IsDefault="True" Click="Button_Click_1"></Button>
+            </TabItem>
+        </TabControl>
+        <Grid DockPanel.Dock="Top">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <TextBlock Name="StatusLabel" Grid.Row="0" FontWeight="Bold" Width="515" Height="37" TextWrapping="Wrap"/>
+            <ProgressBar Name="MainProgressBar" Grid.Row="1" Visibility="Visible" Height="25" Width="515"/>
+
+        </Grid>
+        <ScrollViewer>
+            <DataGrid Name="AdresyDataGrid" FontSize="16"/>
+        </ScrollViewer>
+
+    </DockPanel>
+</Window>
