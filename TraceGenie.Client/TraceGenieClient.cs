@@ -71,6 +71,9 @@ namespace TraceGenie.Client
             {
                 throw new NotLoggedInException();
             }
+
+            if (postcode.Contains(Environment.NewLine)) return await MultiPostCodeSearch(postcode);
+
             string encodedPostCode = WebUtility.HtmlEncode(postcode);
             int position = 0;
             var list = new List<TraceGenieEntry>();
@@ -92,6 +95,42 @@ namespace TraceGenie.Client
             return list;
         }
 
+        public async Task<List<TraceGenieEntry>> MultiPostCodeSearch(string postcode)
+        {
+            var postcodes = postcode.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+            var fullList = new List<TraceGenieEntry>();
+
+            foreach (var code in postcodes)
+            {
+                fullList.AddRange(await SearchForAddresses(code));
+            }
+
+            return fullList;
+        }
+
+        public async Task<List<TraceGenieEntry>> SearchForAddresses(string postcode)
+        {
+            string encodedPostCode = WebUtility.HtmlEncode(postcode);
+            int position = 0;
+            var list = new List<TraceGenieEntry>();
+
+            var entries = new List<TraceGenieEntry>();
+
+            do
+            {
+                string searchPage = $"http://www.tracegenie.com/amember4/amember/1DAY/allpcs.php?s={position}&q6={encodedPostCode}";
+
+                var searchResult = await _client.GetAsync(searchPage);
+                searchResult.EnsureSuccessStatusCode();
+
+                entries = ConvertToTraceGenieEntries(await searchResult.Content.ReadAsStringAsync());
+                list.AddRange(entries);
+                position += 10;
+            } while (entries.Count == 10);
+
+            return list;
+
+        }
         public List<TraceGenieEntry> ConvertToTraceGenieEntries(string fileContent)
         {
             fileContent = Cleanup(fileContent);

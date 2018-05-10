@@ -59,6 +59,7 @@ namespace TraceGenie.UI
             UsernameTextBox.IsEnabled = false;
             PasswordTextBox.IsEnabled = false;
             LoginButton.IsEnabled = false;
+            MainTabControl.SelectedIndex = 1;
         }
 
         private void ActivateSearchButtons()
@@ -112,23 +113,27 @@ namespace TraceGenie.UI
         {
             PostcodeTextBox.IsEnabled = false;
             SzukajAdresowButton.IsEnabled = false;
+            MainProgressBar.Visibility = Visibility.Visible;
             try
             {
-                //live
-                var result = await _client.Search(PostcodeTextBox.Text);
+                var postcodes = PostcodeTextBox.Text.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
 
-                //for testing purpose
-                //string fileContent = File.ReadAllText("sampleEntries.html");
-                //_client = new TraceGenieClient();
-                //List<TraceGenieEntry> result = _client.ConvertToTraceGenieEntries(fileContent);
+                _activeEntries = new List<TraceGenieEntry>();
 
-                _activeEntries = result;
-                //just for flickering and scroll reset
-                AdresyDataGrid.ItemsSource = new List<TraceGenieEntry>();
-                AdresyDataGrid.ItemsSource = result;
+
+
+                for (int i = 0; i < postcodes.Length; i++)
+                {
+                    double procent = (100d / postcodes.Length) * i;
+                    MainProgressBar.Value = procent;
+                    StatusLabel.Text = $"Ładuję adresy z {postcodes[i]}. {(int)procent}% zrobione";
+                    _activeEntries.AddRange(await _client.SearchForAddresses(postcodes[i]));
+
+                }
+                AdresyDataGrid.ItemsSource = _activeEntries;
                 ActivateSaveButtons();
                 StatusLabel.Foreground = new SolidColorBrush(Color.FromRgb(0, 192, 0));
-                StatusLabel.Text = $"Załadowano adresy z {PostcodeTextBox.Text}";
+                StatusLabel.Text = $"Załadowano wszystkie adresy";
 
             }
             catch (Exception ex)
@@ -140,7 +145,37 @@ namespace TraceGenie.UI
             {
                 PostcodeTextBox.IsEnabled = true;
                 SzukajAdresowButton.IsEnabled = true;
+                MainProgressBar.Visibility = Visibility.Hidden;
             }
+
+        }
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            if (_activeEntries != null)
+            {
+                try
+                {
+                    var polskieImiona = File.ReadAllLines("lista_polskich_imion.txt").Select(x => x.ToLower());
+                    var filteredEntries = _activeEntries.Where(x => polskieImiona.Any(x.FullName.ToLower().Contains));
+                    AdresyDataGrid.ItemsSource = filteredEntries;
+                    _activeEntries = filteredEntries.ToList();
+                    StatusLabel.Foreground = new SolidColorBrush(Color.FromRgb(0, 192, 0));
+                    StatusLabel.Text = $"Przefiltrowano listę wg. polskich imion";
+                }
+                catch (Exception ex)
+                {
+                    StatusLabel.Foreground = new SolidColorBrush(Color.FromRgb(192, 0, 0));
+                    StatusLabel.Text = ex.Message;
+                }
+            }
+            else
+            {
+                StatusLabel.Foreground = new SolidColorBrush(Color.FromRgb(192, 0, 0));
+                StatusLabel.Text = "Najpierw załaduj adresy";
+            }
+
+
         }
     }
 }

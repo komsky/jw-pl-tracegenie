@@ -106,5 +106,10 @@
       <Name>TraceGenie.Client</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="lista_polskich_imion.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
