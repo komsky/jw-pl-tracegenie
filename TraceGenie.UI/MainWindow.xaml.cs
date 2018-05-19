@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Windows;
 using System.Windows.Media;
 using TraceGenie.Client;
 using TraceGenie.Client.Models;
+using Microsoft.Win32;
 
 namespace TraceGenie.UI
 {
@@ -16,6 +18,8 @@ namespace TraceGenie.UI
     public partial class MainWindow : Window
     {
         List<TraceGenieEntry> _activeEntries;
+        IEnumerable<TraceGenieEntry> _filteredEntries;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -77,20 +81,13 @@ namespace TraceGenie.UI
 
         private void ZapiszCSVButton_Click(object sender, RoutedEventArgs e)
         {
-            StringBuilder builder = new StringBuilder();
-            foreach (var entry in _activeEntries)
-            {
-                builder.AppendLine(entry.ToString());
-            }
-
-
-            Microsoft.Win32.SaveFileDialog dlg = new Microsoft.Win32.SaveFileDialog();
+            SaveFileDialog dlg = new Microsoft.Win32.SaveFileDialog();
             dlg.FileName = $"POSTCODE - EXPORT"; // Default file name
             dlg.DefaultExt = ".csv"; // Default file extension
             dlg.Filter = "Csv documents (.csv)|*.csv"; // Filter files by extension
 
             // Show save file dialog box
-            Nullable<bool> result = dlg.ShowDialog();
+            bool? result = dlg.ShowDialog();
 
             // Process save file dialog box results
             if (result == true)
@@ -120,8 +117,6 @@ namespace TraceGenie.UI
 
                 _activeEntries = new List<TraceGenieEntry>();
 
-
-
                 for (int i = 0; i < postcodes.Length; i++)
                 {
                     double procent = (100d / postcodes.Length) * i;
@@ -130,6 +125,8 @@ namespace TraceGenie.UI
                     _activeEntries.AddRange(await _client.SearchForAddresses(postcodes[i]));
 
                 }
+
+                //_activeEntries = Helper.GetFakeActiveEntries();
                 AdresyDataGrid.ItemsSource = _activeEntries;
                 ActivateSaveButtons();
                 StatusLabel.Foreground = new SolidColorBrush(Color.FromRgb(0, 192, 0));
@@ -147,19 +144,17 @@ namespace TraceGenie.UI
                 SzukajAdresowButton.IsEnabled = true;
                 MainProgressBar.Visibility = Visibility.Hidden;
             }
-
         }
 
-        private void Button_Click_1(object sender, RoutedEventArgs e)
+        private void FilterLoose(object sender, RoutedEventArgs e)
         {
             if (_activeEntries != null)
             {
                 try
                 {
-                    var polskieImiona = File.ReadAllLines("lista_polskich_imion.txt").Select(x => x.ToLower());
-                    var filteredEntries = _activeEntries.Where(x => polskieImiona.Any(x.FullName.ToLower().Contains));
-                    AdresyDataGrid.ItemsSource = filteredEntries;
-                    _activeEntries = filteredEntries.ToList();
+                    var polskieImiona = File.ReadAllLines(ListPolskichImion).Select(x => x.ToLower());
+                    _filteredEntries = _activeEntries.Where(x => polskieImiona.Any(x.FullName.ToLower().Contains));
+                    AdresyDataGrid.ItemsSource = _filteredEntries;
                     StatusLabel.Foreground = new SolidColorBrush(Color.FromRgb(0, 192, 0));
                     StatusLabel.Text = $"Przefiltrowano listę wg. polskich imion";
                 }
@@ -174,8 +169,69 @@ namespace TraceGenie.UI
                 StatusLabel.Foreground = new SolidColorBrush(Color.FromRgb(192, 0, 0));
                 StatusLabel.Text = "Najpierw załaduj adresy";
             }
+        }
+        private void FilterExact(object sender, RoutedEventArgs e)
+        {
+            if (_activeEntries != null)
+            {
+                try
+                {
+                    var polskieImiona = File.ReadAllLines(ListPolskichImion).Select(x => x.ToLower());
+                     _filteredEntries = _activeEntries.Where(x => polskieImiona.Any(x.FullName.ToLower().StartsWith));
 
+                    AdresyDataGrid.ItemsSource = _filteredEntries;
 
+                    StatusLabel.Foreground = new SolidColorBrush(Color.FromRgb(0, 192, 0));
+                    StatusLabel.Text = $"Przefiltrowano listę wg. polskich imion";
+                }
+                catch (Exception ex)
+                {
+                    StatusLabel.Foreground = new SolidColorBrush(Color.FromRgb(192, 0, 0));
+                    StatusLabel.Text = ex.Message;
+                }
+            }
+            else
+            {
+                StatusLabel.Foreground = new SolidColorBrush(Color.FromRgb(192, 0, 0));
+                StatusLabel.Text = "Najpierw załaduj adresy";
+            }
+        }
+
+        private void SaveFilteredCsv(object sender, RoutedEventArgs e)
+        {
+            SaveFileDialog dlg = new SaveFileDialog();
+            dlg.FileName = $"POSTCODE - EXPORT"; // Default file name
+            dlg.DefaultExt = ".csv"; // Default file extension
+            dlg.Filter = "Csv documents (.csv)|*.csv"; // Filter files by extension
+
+            // Show save file dialog box
+            bool? result = dlg.ShowDialog();
+
+            // Process save file dialog box results
+            if (result == true)
+            {
+                // Save document
+                string filename = dlg.FileName;
+                File.WriteAllLines(filename, _filteredEntries.Select(x => x.ToString()).ToArray());
+                StatusLabel.Text = $"Adresy zapisane w pliku {filename}";
+            }
+            else
+            {
+                StatusLabel.Foreground = new SolidColorBrush(Color.FromRgb(255, 0, 0));
+                StatusLabel.Text = $"Błąd zapisu.";
+            }
+
+        }
+
+        public string ListPolskichImion
+        {
+            get
+            {
+                string codeBase = Assembly.GetExecutingAssembly().CodeBase;
+                UriBuilder uri = new UriBuilder(codeBase);
+                string path = Uri.UnescapeDataString(uri.Path);
+                return Path.Combine(Path.GetDirectoryName(path), "lista_polskich_imion.txt");
+            }
         }
     }
 }

@@ -52,7 +52,26 @@
                 </Grid>
             </TabItem>
             <TabItem Header="Filtrowanie">
-                <Button Content="Filtruj wg. polskich imion" IsDefault="True" Click="Button_Click_1"></Button>
+                <StackPanel>
+                <Button Content="Filtrowanie luźne" 
+                        IsDefault="True" 
+                        Click="FilterLoose"
+                        ToolTip="Wyszukuje polskie imię w całej treści imienia i nazwiska."
+                        ></Button>
+
+                    <Button Content="Filtrowanie dokładne" 
+                        IsDefault="False" 
+                        ToolTip="Filtruje polskie imiona tylko na początku tekstu."
+                        Click="FilterExact">
+
+                    </Button>
+                    <Button Content="Zapisz przefiltrowane adresy jako CSV" 
+                        IsDefault="False" 
+                        ToolTip="Zapisuje przefiltrowaną listę jako CSV. Przydatne do dalszego przetwarzania np. w Excel"
+                        Click="SaveFilteredCsv">
+
+                    </Button>
+                </StackPanel>
             </TabItem>
         </TabControl>
         <Grid DockPanel.Dock="Top">
