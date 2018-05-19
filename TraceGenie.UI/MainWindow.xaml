@@ -42,7 +42,7 @@
                     </Grid.RowDefinitions>
 
                     <Label Name="PostcodeLabel" IsEnabled="False" Content="Post code" Grid.Column="0" Grid.Row="0"/>
-                    <ScrollViewer   Grid.Column="1" Grid.Row="0" Width="220" Grid.RowSpan="3" >
+                    <ScrollViewer   Grid.Column="1" Grid.Row="0" Width="220" Height="80" Grid.RowSpan="3" >
                         <TextBox AcceptsReturn="True" IsEnabled="True" x:Name="PostcodeTextBox" TextWrapping="Wrap"  />
 
                     </ScrollViewer>

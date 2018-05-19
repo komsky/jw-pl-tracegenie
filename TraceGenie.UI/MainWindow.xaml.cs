@@ -122,10 +122,11 @@ namespace TraceGenie.UI
                     double procent = (100d / postcodes.Length) * i;
                     MainProgressBar.Value = procent;
                     StatusLabel.Text = $"Ładuję adresy z {postcodes[i]}. {(int)procent}% zrobione";
+                    this.Title = $"JW PL TraceGenie - {(int)procent}% zrobione";
                     _activeEntries.AddRange(await _client.SearchForAddresses(postcodes[i]));
 
                 }
-
+                this.Title = $"JW PL TraceGenie";
                 //_activeEntries = Helper.GetFakeActiveEntries();
                 AdresyDataGrid.ItemsSource = _activeEntries;
                 ActivateSaveButtons();
