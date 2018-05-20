@@ -177,7 +177,7 @@ namespace TraceGenie.UI
             {
                 try
                 {
-                    var polskieImiona = File.ReadAllLines(ListPolskichImion).Select(x => x.ToLower());
+                    var polskieImiona = File.ReadAllLines(ListPolskichImion).Select(x => $"{x.ToLower()} ");
                      _filteredEntries = _activeEntries.Where(x => polskieImiona.Any(x.FullName.ToLower().StartsWith));
 
                     AdresyDataGrid.ItemsSource = _filteredEntries;
