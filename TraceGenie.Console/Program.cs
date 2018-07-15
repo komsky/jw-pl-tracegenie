@@ -15,7 +15,7 @@ namespace TraceGenie.Console
     {
         static void Main(string[] args)
         {
-            string fileContent = File.ReadAllText("sampleEntries.html");
+            string fileContent = File.ReadAllText("sample2018.html");
             List<TraceGenieEntry> lista = ConvertToTraceGenieEntries(fileContent);
 
             foreach (var item in lista)
@@ -28,25 +28,27 @@ namespace TraceGenie.Console
 
         private static List<TraceGenieEntry> ConvertToTraceGenieEntries(string fileContent)
         {
+
+
             fileContent = Cleanup(fileContent);
 
             var doc = new HtmlDocument();
             doc.LoadHtml(fileContent);
-            var htmls = doc.DocumentNode.ChildNodes.Where(x => x.Name == "html").ToList();
+            var mainElement = doc.DocumentNode.ChildNodes.Single(x => x.Name == "font");
+            var elements = mainElement.SelectNodes("//div[contains(@class, 'panel panel-default')]/div"); ///div[contains(@class, 'container')
             var entries = new List<TraceGenieEntry>();
 
-            foreach (var item in htmls)
+            foreach (var entry in elements)
             {
-                var body = item.ChildNodes.SingleOrDefault(x => x.Name == "body");
-                if (body != null)
+                if (entry != null)
                 {
-                    var name = body.SelectSingleNode("div/div/h2").InnerText.ClearFromNbsps();
+                    var name = entry.SelectSingleNode("h2").InnerText?.ClearFromNbsps();
 
-                    var address = body.SelectSingleNode("div/div/table/tbody/tr/td").InnerHtml.ClearFromTags();
+                    var address = entry.SelectSingleNode("table/tbody/tr/td").InnerHtml.ClearFromTags();
 
                     entries.Add(new TraceGenieEntry { FullName = name, Address = address });
                 }
-                
+
 
             }
             return entries;

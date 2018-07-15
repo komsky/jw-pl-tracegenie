@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TraceGenie.UI"
         mc:Ignorable="d"
-        Title="JW PL TraceGenie" Height="445.5" Width="576.917">
+        Title="JW PL TraceGenie" Height="445.5" Width="834.59">
     <DockPanel>
         <TabControl DockPanel.Dock="Top" Name="MainTabControl">
             <TabItem Header="Logowanie">
@@ -32,8 +32,9 @@
                 <Grid>
 
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
+                        <ColumnDefinition Width="220"/>
+                        <ColumnDefinition Width="128"/>
+                        <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition/>
@@ -41,19 +42,29 @@
                         <RowDefinition/>
                     </Grid.RowDefinitions>
 
-                    <Label Name="PostcodeLabel" IsEnabled="False" Content="Post code" Grid.Column="0" Grid.Row="0"/>
-                    <ScrollViewer   Grid.Column="1" Grid.Row="0" Width="220" Height="80" Grid.RowSpan="3" >
+                    <Label Name="PostcodeLabel" IsEnabled="False" Content="Post code" Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" Margin="0,0,0,26.333" Grid.RowSpan="2"/>
+                    <ScrollViewer   Grid.Column="2" Grid.Row="0" Height="80" Grid.RowSpan="3" Margin="30,0,31,0" >
                         <TextBox AcceptsReturn="True" IsEnabled="True" x:Name="PostcodeTextBox" TextWrapping="Wrap"  />
 
                     </ScrollViewer>
-                    <Button IsEnabled="False" Name="SzukajAdresowButton" Content="Szukaj adresów" Grid.Column="0" Grid.Row="1" Width="104" Click="SzukajAdresowButton_Click" />
-                    <Button Name="ZapiszCSVButton" IsEnabled="False" Content="Zapisz jako CSV"  Grid.Column="0" Grid.Row="2" Width="104" Click="ZapiszCSVButton_Click"/>
 
+                    <Button IsEnabled="False" Name="SzukajAdresowButton" Content="Szukaj adresów" Grid.Column="0" Grid.Row="1" Width="104" Click="SzukajAdresowButton_Click" Margin="89,0.333,26.525,26" Grid.RowSpan="2" />
+                    <ComboBox Name="Lata" Grid.Column="1" Grid.Row="1" 
+                               Width="128" SelectedIndex="0">
+                        <ListBoxItem Content="Wszystkie lata"/>
+                        <ListBoxItem Content="2018"/>
+                        <ListBoxItem Content="2017"/>
+                    </ComboBox>
+                    <Button Name="ZapiszCSVButton" IsEnabled="False" Content="Zapisz jako CSV"  Grid.Column="0" Grid.Row="1" Width="104" Click="ZapiszCSVButton_Click" Margin="89,26.333,26.525,0" Grid.RowSpan="2"/>
+                    <StackPanel Grid.Column="1" Grid.Row="1" Orientation="Horizontal" Grid.ColumnSpan="2" Margin="0,26.333,371,0" Grid.RowSpan="2">
+                        <Label  Content="Separator:" Width="64"></Label>
+                        <TextBox Name="SeparatorPol" Width="64" Text=";"></TextBox>
+                    </StackPanel>
                 </Grid>
             </TabItem>
             <TabItem Header="Filtrowanie">
                 <StackPanel>
-                <Button Content="Filtrowanie luźne" 
+                    <Button Content="Filtrowanie luźne" 
                         IsDefault="True" 
                         Click="FilterLoose"
                         ToolTip="Wyszukuje polskie imię w całej treści imienia i nazwiska."
