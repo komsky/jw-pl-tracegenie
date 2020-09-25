@@ -77,7 +77,7 @@ namespace TraceGenie.UI
 
         private void ZapiszCSVButton_Click(object sender, RoutedEventArgs e)
         {
-            StringBuilder builder = new StringBuilder();
+            SaveFileDialog dlg = new Microsoft.Win32.SaveFileDialog();
             foreach (var entry in _activeEntries)
             {
                 builder.AppendLine(entry.ToString());
@@ -91,13 +91,13 @@ namespace TraceGenie.UI
 
             // Show save file dialog box
             Nullable<bool> result = dlg.ShowDialog();
-
+            
             // Process save file dialog box results
             if (result == true)
             {
                 // Save document
                 string filename = dlg.FileName;
-                File.WriteAllLines(filename, _activeEntries.Select(x => x.ToString()).ToArray());
+                File.WriteAllLines(filename, _activeEntries.Select(x => x.ToString(SeparatorPol.Text)).ToArray());
                 StatusLabel.Text = $"Adresy zapisane w pliku {filename}";
             }
             else
@@ -116,7 +116,16 @@ namespace TraceGenie.UI
             MainProgressBar.Visibility = Visibility.Visible;
             try
             {
-                var postcodes = PostcodeTextBox.Text.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+                String[] postcodes = PostcodeTextBox.Text.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+
+                if (PostcodeTextBox.Text.Contains(","))
+                {
+                    postcodes = PostcodeTextBox.Text.Split(new string[] { "," }, StringSplitOptions.None);
+                }
+                else
+                {
+                    postcodes = PostcodeTextBox.Text.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+                }
 
                 _activeEntries = new List<TraceGenieEntry>();
 
@@ -127,9 +136,22 @@ namespace TraceGenie.UI
                     double procent = (100d / postcodes.Length) * i;
                     MainProgressBar.Value = procent;
                     StatusLabel.Text = $"Ładuję adresy z {postcodes[i]}. {(int)procent}% zrobione";
-                    _activeEntries.AddRange(await _client.SearchForAddresses(postcodes[i]));
+                    this.Title = $"JW PL TraceGenie - {(int)procent}% zrobione";
+                    if (Lata.SelectedIndex == 1)
+                    {
+                        _activeEntries.AddRange(await _client.SearchForAddressesSingleYear(postcodes[i], "2018"));
+                    }
+                    else if (Lata.SelectedIndex == 2)
+                    {
+                        _activeEntries.AddRange(await _client.SearchForAddressesSingleYear(postcodes[i], "2017"));
+                    }
+                    else
+                    {
+                        _activeEntries.AddRange(await _client.SearchForAddresses(postcodes[i]));
+                    }
 
                 }
+                this.Title = $"JW PL TraceGenie";
                 AdresyDataGrid.ItemsSource = _activeEntries;
                 ActivateSaveButtons();
                 StatusLabel.Foreground = new SolidColorBrush(Color.FromRgb(0, 192, 0));
@@ -156,7 +178,7 @@ namespace TraceGenie.UI
             {
                 try
                 {
-                    var polskieImiona = File.ReadAllLines("lista_polskich_imion.txt").Select(x => x.ToLower());
+                    var polskieImiona = File.ReadAllLines(ListPolskichImion).Select(x => $"{x.ToLower()} ");
                     var filteredEntries = _activeEntries.Where(x => polskieImiona.Any(x.FullName.ToLower().Contains));
                     AdresyDataGrid.ItemsSource = filteredEntries;
                     _activeEntries = filteredEntries.ToList();

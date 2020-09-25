@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -18,12 +19,13 @@ namespace TraceGenie.Client
 
         bool _isLoggedIn;
         HttpClient _client;
-        string _initialPage = "http://www.tracegenie.com/";
+        string _initialPage = "https://www.tracegenie.com/";
         string _loginLocation = "https://www.tracegenie.com/amember4/amember/member";
 
         public TraceGenieClient()
         {
             _client = new HttpClient();
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11;
             _isLoggedIn = false;
         }
 
@@ -65,14 +67,14 @@ namespace TraceGenie.Client
             return false;
         }
 
-        public async Task<List<TraceGenieEntry>> Search(string postcode)
+        public async Task<List<TraceGenieEntry>> SearchAllYears(string postcode)
         {
             if (!_isLoggedIn)
             {
                 throw new NotLoggedInException();
             }
 
-            if (postcode.Contains(Environment.NewLine)) return await MultiPostCodeSearch(postcode);
+            if (postcode.Contains(Environment.NewLine)) return await MultiPostCodeSearchAllYears(postcode);
 
             string encodedPostCode = WebUtility.HtmlEncode(postcode);
             int position = 0;
@@ -95,7 +97,7 @@ namespace TraceGenie.Client
             return list;
         }
 
-        public async Task<List<TraceGenieEntry>> MultiPostCodeSearch(string postcode)
+        public async Task<List<TraceGenieEntry>> MultiPostCodeSearchAllYears(string postcode)
         {
             var postcodes = postcode.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
             var fullList = new List<TraceGenieEntry>();
@@ -103,6 +105,19 @@ namespace TraceGenie.Client
             foreach (var code in postcodes)
             {
                 fullList.AddRange(await SearchForAddresses(code));
+            }
+
+            return fullList;
+        }
+
+        public async Task<List<TraceGenieEntry>> MultiPostCodeSearchSingleYear(string postcode, string year)
+        {
+            var postcodes = postcode.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+            var fullList = new List<TraceGenieEntry>();
+
+            foreach (var code in postcodes)
+            {
+                fullList.AddRange(await SearchForAddressesSingleYear(code, year));
             }
 
             return fullList;
@@ -124,6 +139,7 @@ namespace TraceGenie.Client
                 searchResult.EnsureSuccessStatusCode();
 
                 entries = ConvertToTraceGenieEntries(await searchResult.Content.ReadAsStringAsync());
+                ExtractPostcodeToProperty(postcode, entries);
                 list.AddRange(entries);
                 position += 10;
             } while (entries.Count == 10);
@@ -131,6 +147,56 @@ namespace TraceGenie.Client
             return list;
 
         }
+
+        private static void ExtractPostcodeToProperty(string postcode, List<TraceGenieEntry> entries)
+        {
+            foreach (var entry in entries)
+            {
+                entry.PostCode = postcode;
+                entry.Address = entry.Address.Remove(entry.Address.IndexOf(postcode), postcode.Length);
+            }
+        }
+
+        public async Task<List<TraceGenieEntry>> SearchForAddressesSingleYear(string postcode, string year)
+        {
+            string encodedPostCode = WebUtility.HtmlEncode(postcode);
+            int position = 0;
+            var list = new List<TraceGenieEntry>();
+
+            var entries = new List<TraceGenieEntry>();
+
+            do
+            {
+                string searchPage = GetSearchPage(encodedPostCode, position, year);
+
+                var searchResult = await _client.GetAsync(searchPage);
+                searchResult.EnsureSuccessStatusCode();
+                entries = ConvertToTraceGenieEntriesSingleYear(await searchResult.Content.ReadAsStringAsync());
+                ExtractPostcodeToProperty(postcode, entries);
+                list.AddRange(entries);
+                position += 20;
+            } while (entries.Count == 20);
+
+            return list;
+
+        }
+
+        private static string GetSearchPage(string encodedPostCode, int position, string year)
+        {
+            string baseAddres = "http://www.tracegenie.com/amember4/amember/1DAY/";
+            switch (year)
+            {
+                case "2018":
+                    return $"{baseAddres}postcode.php?s={position}&q6={encodedPostCode}&D99=2018vr";
+                case "2017":
+                    return $"{baseAddres}postcode.php?s={position}&q6={encodedPostCode}&D89=2017vr";
+                case "ALL":
+                default:
+                    return $"{baseAddres}allpcs.php?s={position}&q6={encodedPostCode}";
+            }
+            
+        }
+
         public List<TraceGenieEntry> ConvertToTraceGenieEntries(string fileContent)
         {
             fileContent = Cleanup(fileContent);
@@ -156,10 +222,70 @@ namespace TraceGenie.Client
             }
             return entries;
         }
+        public List<TraceGenieEntry> ConvertToTraceGenieEntriesSingleYear(string fileContent)
+        {
+            fileContent = Cleanup(fileContent);
+
+            var doc = new HtmlDocument();
+            doc.LoadHtml(fileContent);
+            var mainElement = doc.DocumentNode.ChildNodes.Single(x => x.Name == "font");
+            var elements = mainElement.SelectNodes("//div[contains(@class, 'panel panel-default')]/div"); ///div[contains(@class, 'container')
+            var entries = new List<TraceGenieEntry>();
+            if (elements == null)
+            {
+                return entries;
+            }
+
+            foreach (var entry in elements)
+            {
+                if (entry != null)
+                {
+                    var name = entry.SelectSingleNode("h2").InnerText?.ClearFromNbsps();
+
+                    var address = entry.SelectSingleNode("table/tbody/tr/td").InnerHtml.ClearFromTags();
+
+                    entries.Add(new TraceGenieEntry { FullName = name, Address = address });
+                }
+                
+            }
+            return entries;
+        }
 
         private static string Cleanup(string fileContent)
         {
             return fileContent.Replace("<!DOCTYPE html>", "");
+        }
+
+        public async Task<List<TraceGenieEntry>> SearchSingleYear(string postcode, string year)
+        {
+
+            if (!_isLoggedIn)
+            {
+                throw new NotLoggedInException();
+            }
+
+            if (postcode.Contains(Environment.NewLine)) return await MultiPostCodeSearchAllYears(postcode);
+
+            string encodedPostCode = WebUtility.HtmlEncode(postcode);
+            int position = 0;
+            var list = new List<TraceGenieEntry>();
+
+            var entries = new List<TraceGenieEntry>();
+
+            do
+            {
+                string searchPage = $"http://www.tracegenie.com/amember4/amember/1DAY/allpcs.php?s={position}&q6={encodedPostCode}";
+
+                var searchResult = await _client.GetAsync(searchPage);
+                searchResult.EnsureSuccessStatusCode();
+
+                entries = ConvertToTraceGenieEntries(await searchResult.Content.ReadAsStringAsync());
+                ExtractPostcodeToProperty(postcode, entries);
+                list.AddRange(entries);
+                position += 10;
+            } while (entries.Count == 10);
+
+            return list;
         }
     }
 }
