@@ -1,0 +1,35 @@
+﻿@model TraceGenie.Web.Models.FoundModel
+
+<div class="d-flex justify-content-center">
+
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <h1>@Model.PostCode</h1>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    @for (int i = 1; i <= Model.Records.Count; i++)
+                    {
+                        <tr>
+                            <th scope="row">@i</th>
+                            <td>@Model.Records[i - 1].FullName</td>
+                            <td>@Model.Records[i - 1].Address</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="row justify-content-center">
+        <div class="col-lg-12">
+            <a class="btn btn-primary" href="/search" role="button">Powrót</a>
+        </div>
+    </div>
+</div>

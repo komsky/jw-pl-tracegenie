@@ -25,7 +25,8 @@ namespace TraceGenie.Client
         public TraceGenieClient()
         {
             _client = new HttpClient();
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11;
+            ServicePointManager.Expect100Continue = true;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             _isLoggedIn = false;
         }
 
@@ -174,8 +175,8 @@ namespace TraceGenie.Client
                 entries = ConvertToTraceGenieEntriesSingleYear(await searchResult.Content.ReadAsStringAsync());
                 ExtractPostcodeToProperty(postcode, entries);
                 list.AddRange(entries);
-                position += 20;
-            } while (entries.Count == 20);
+                position += 10;
+            } while (entries.Count == 10);
 
             return list;
 
@@ -190,6 +191,8 @@ namespace TraceGenie.Client
                     return $"{baseAddres}postcode.php?s={position}&q6={encodedPostCode}&D99=2018vr";
                 case "2017":
                     return $"{baseAddres}postcode.php?s={position}&q6={encodedPostCode}&D89=2017vr";
+                case "2020":
+                    return $"{baseAddres}postcode.php?s={position}&q6={encodedPostCode}&D119=2020vr";
                 case "ALL":
                 default:
                     return $"{baseAddres}allpcs.php?s={position}&q6={encodedPostCode}";

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -22,6 +23,8 @@ namespace TraceGenie.UI
         }
 
         TraceGenieClient _client;
+
+        public string ListPolskichImion = "lista_polskich_imion.txt";
 
         private async void Button_Click(object sender, RoutedEventArgs e)
         {
@@ -77,6 +80,7 @@ namespace TraceGenie.UI
 
         private void ZapiszCSVButton_Click(object sender, RoutedEventArgs e)
         {
+            StringBuilder builder = new StringBuilder();
             SaveFileDialog dlg = new Microsoft.Win32.SaveFileDialog();
             foreach (var entry in _activeEntries)
             {
@@ -84,7 +88,7 @@ namespace TraceGenie.UI
             }
 
 
-            Microsoft.Win32.SaveFileDialog dlg = new Microsoft.Win32.SaveFileDialog();
+            
             dlg.FileName = $"POSTCODE - EXPORT"; // Default file name
             dlg.DefaultExt = ".csv"; // Default file extension
             dlg.Filter = "Csv documents (.csv)|*.csv"; // Filter files by extension

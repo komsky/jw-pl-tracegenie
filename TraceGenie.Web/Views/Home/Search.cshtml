@@ -1,0 +1,44 @@
+﻿@model TraceGenie.Web.Models.SearchModel
+
+
+@{
+    ViewBag.Title = "Podaj hasło do strony";
+}
+@using (Html.BeginForm("Search", "Home", FormMethod.Post, new { @class = "d-flex justify-content-center" }))
+{
+    <div class="row justify-content-center">
+        @Html.AntiForgeryToken()
+
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="col-12 justify-content-center">
+
+           
+            <div class="row">
+                @Html.LabelFor(model => model.PostCode, htmlAttributes: new { @class = "control-label ml-3" })
+                <div class="col-lg-12 form-group">
+                    @Html.EditorFor(model => model.PostCode, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.PostCode, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="row">
+                @Html.LabelFor(model => model.FilterPolishNames, htmlAttributes: new { @class = "control-label ml-3" })
+                <div class="col-lg-12 form-group">
+                    @Html.CheckBoxFor(model => model.FilterPolishNames, new { @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.FilterPolishNames, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-12 form-group">
+                    <input type="submit"
+                           value="Szukaj"
+                           class="btn btn-primary form-control" />
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+}

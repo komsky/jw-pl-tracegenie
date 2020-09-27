@@ -64,7 +64,6 @@
             </TabItem>
             <TabItem Header="Filtrowanie">
                 <Button Content="Filtruj wg. polskich imion" IsDefault="True" Click="Button_Click_1"></Button>
-                <Button Content="Filtrowanie luźne" 
             </TabItem>
         </TabControl>
         <Grid DockPanel.Dock="Top">

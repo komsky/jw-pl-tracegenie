@@ -1,14 +1,23 @@
-﻿@{
+﻿@model TraceGenie.Web.Models.AuthModel
+
+@{
     ViewBag.Title = "Podaj hasło do strony";
 }
 
 
-<form action="/Home/Index" method="post" class="col-lg-6 offset-lg-3 ">
+<form action="/Home/Index" method="post" class="col-lg-6 offset-lg-3">
     <div class="row justify-content-center">
-        <input type="text" placeholder="Hasło" class="form-control">
+        <input name="password" type="password" placeholder="Hasło" class="form-control">
         <br /><br />
         <span class="input-group-btn">
             <button class="btn btn-primary">Wyślij</button>
         </span>
     </div>
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="row justify-content-center text-danger">
+            @Html.Raw(Model.ErrorMessage)
+        </div>
+
+    }
 </form>
