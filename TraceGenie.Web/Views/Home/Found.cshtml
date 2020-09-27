@@ -1,6 +1,6 @@
 ﻿@model TraceGenie.Web.Models.FoundModel
 
-<div class="d-flex justify-content-center">
+<div class="container justify-content-center">
 
     <div class="row justify-content-center">
         <div class="col-12">
@@ -11,17 +11,19 @@
                         <th scope="col">#</th>
                         <th scope="col">Name</th>
                         <th scope="col">Address</th>
+                        <th scope="col">Post code</th>
                     </tr>
                 </thead>
                 <tbody>
 
                     @for (int i = 1; i <= Model.Records.Count; i++)
                     {
-                        <tr>
-                            <th scope="row">@i</th>
-                            <td>@Model.Records[i - 1].FullName</td>
-                            <td>@Model.Records[i - 1].Address</td>
-                        </tr>
+                    <tr>
+                        <th scope="row">@i</th>
+                        <td>@Model.Records[i - 1].FullName</td>
+                        <td>@Model.Records[i - 1].Address</td>
+                        <td>@Model.Records[i - 1].PostCode</td>
+                    </tr>
                     }
                 </tbody>
             </table>

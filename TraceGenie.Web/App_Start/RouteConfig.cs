@@ -16,8 +16,8 @@ namespace TraceGenie.Web
 
             routes.MapRoute(
                 name: "Default",
-                url: "{action}/{id}",
-                defaults: new { controller = "Home", action = "Index", id = UrlParameter.Optional });
+                url: "{action}",
+                defaults: new { controller = "Home" });
 
             routes.MapRoute(
                 name: "classic",
